@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  fastapi-app:
+    build: .
+    container_name: fastapi-microservice
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/fastapi_db
+      - SECRET_KEY=your-secret-key-change-this-in-production
+      - DEBUG=false
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app/app
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: fastapi-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=fastapi_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  adminer:
+    image: adminer
+    container_name: fastapi-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
